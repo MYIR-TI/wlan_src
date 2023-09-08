@@ -10223,7 +10223,7 @@ mlan_status woal_register_cfg80211(moal_private *priv)
 	 * flag is not set, upon a regdomain change, the interfaces are given a
 	 * grace period (currently 60 seconds) to disconnect or move to an
 	 * allowed channel.*/
-	wiphy->regulatory_flags |= REGULATORY_IGNORE_STALE_KICKOFF;
+	wiphy->regulatory_flags |= ((unsigned long)1<<(6)); //REGULATORY_IGNORE_STALE_KICKOFF;
 #endif
 
 	memset(&priv->phandle->country_code, 0,
