@@ -1,27 +1,19 @@
 #  File: Makefile
 #
-#  Copyright 2014-2022 NXP
+#  Copyright 2008-2021 NXP
 #
-#  NXP CONFIDENTIAL
-#  The source code contained or described herein and all documents related to
-#  the source code (Materials) are owned by NXP, its
-#  suppliers and/or its licensors. Title to the Materials remains with NXP,
-#  its suppliers and/or its licensors. The Materials contain
-#  trade secrets and proprietary and confidential information of NXP, its
-#  suppliers and/or its licensors. The Materials are protected by worldwide copyright
-#  and trade secret laws and treaty provisions. No part of the Materials may be
-#  used, copied, reproduced, modified, published, uploaded, posted,
-#  transmitted, distributed, or disclosed in any way without NXP's prior
-#  express written permission.
+#  This software file (the File) is distributed by NXP
+#  under the terms of the GNU General Public License Version 2, June 1991
+#  (the License).  You may use, redistribute and/or modify the File in
+#  accordance with the terms and conditions of the License, a copy of which
+#  is available by writing to the Free Software Foundation, Inc.,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA or on the
+#  worldwide web at http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 #
-#  No license under any patent, copyright, trade secret or other intellectual
-#  property right is granted to or conferred upon you by disclosure or delivery
-#  of the Materials, either expressly, by implication, inducement, estoppel or
-#  otherwise. Any license under such intellectual property rights must be
-#  express and approved by NXP in writing.
-#
-#  Alternatively, this software may be distributed under the terms of GPL v2.
-#  SPDX-License-Identifier:    GPL-2.0
+#  THE FILE IS DISTRIBUTED AS-IS, WITHOUT WARRANTY OF ANY KIND, AND THE
+#  IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE
+#  ARE EXPRESSLY DISCLAIMED.  The License provides additional details about
+#  this warranty disclaimer.
 #
 
 CONFIG_COMPATDIR=n
@@ -29,7 +21,7 @@ ifeq ($(CONFIG_COMPATDIR), y)
 COMPATDIR=/lib/modules/$(KERNELVERSION_X86)/build/compat-wireless-3.2-rc1-1/include
 CC ?=		$(CROSS_COMPILE)gcc -I$(COMPATDIR)
 else
-CC ?=		$(CROSS_COMPILE)gcc -I$(COMPATDIR)
+CC ?=		$(CROSS_COMPILE)gcc
 endif
 
 LD ?=		$(CROSS_COMPILE)ld
@@ -60,9 +52,6 @@ CONFIG_PCIE9097=n
 CONFIG_SD9098=n
 CONFIG_USB9098=n
 CONFIG_PCIE9098=n
-CONFIG_SDNW62X=n
-CONFIG_PCIENW62X=n
-CONFIG_USBNW62X=n
 
 
 # Debug Option
@@ -95,15 +84,7 @@ CONFIG_OPENWRT_SUPPORT=n
 # Big-endian platform
 CONFIG_BIG_ENDIAN=n
 
-#ifdef EMBEDDED_AUTH
-# Enable driver based authenticator
-CONFIG_DRV_EMBEDDED_AUTHENTICATOR=n
-#endif
 
-#ifdef EMBEDDED_SUPP
-# Enable driver based supplicant
-CONFIG_DRV_EMBEDDED_SUPPLICANT=n
-#endif
 
 ifeq ($(CONFIG_DRV_EMBEDDED_SUPPLICANT), y)
 CONFIG_EMBEDDED_SUPP_AUTH=y
@@ -121,11 +102,12 @@ CONFIG_SDIO_SUSPEND_RESUME=y
 # DFS testing support
 CONFIG_DFS_TESTING_SUPPORT=y
 
-# Multi-channel support
-CONFIG_MULTI_CHAN_SUPPORT=y
 
 
 
+# Use static link for app build
+export CONFIG_STATIC_LINK=y
+CONFIG_ANDROID_KERNEL=n
 
 #32bit app over 64bit kernel support
 CONFIG_USERSPACE_32BIT_OVER_KERNEL_64BIT=n
@@ -141,25 +123,16 @@ ccflags-y += -DLINUX
 
 
 
-#if defined(EMBEDDED_SUPP) || defined(EMBEDDED_AUTH)
-ifeq ($(CONFIG_EMBEDDED_SUPP_AUTH), y)
-ccflags-y += -I$(M)/mlan/esa
-ccflags-y += -I$(M)/mlan/esa/common
-endif
-#endif
-
 
 
 ARCH ?= arm64
 CONFIG_IMX_SUPPORT=y
 ifeq ($(CONFIG_IMX_SUPPORT),y)
 ccflags-y += -DIMX_SUPPORT
-ifneq ($(ANDROID_PRODUCT_OUT),)
-ccflags-y += -DIMX_ANDROID
-CONFIG_ANDROID_KERNEL=y
-endif
 endif
 #KERNELDIR ?= /usr/src/arm/linux_5_10_y_kernel/linux-nxp
+#KERNELDIR ?= /media/wujl/bsp_ti/myir-ti-linux
+#CROSS_COMPILE ?= /media/wujl/kitdev/myir/sysroots/x86_64-arago-linux/usr/bin/arm-none-linux-gnueabihf-
 #CROSS_COMPILE ?= /opt/fsl-imx-internal-xwayland/5.10-gatesgarth/sysroots/x86_64-pokysdk-linux/usr/bin/aarch64-poky-linux/aarch64-poky-linux-
 
 LD += -S
@@ -171,7 +144,7 @@ APPDIR= $(shell if test -d "mapp"; then echo mapp; fi)
 # Compiler Flags
 #############################################################################
 
-	ccflags-y += -I$(KERNELDIR)/include
+	ccflags-y += -I$(KERNEL_DIR)/include
 
 	ccflags-y += -DFPNUM='"92"'
 
@@ -230,9 +203,6 @@ ifeq ($(CONFIG_SDIO_SUSPEND_RESUME),y)
 endif
 #endif
 
-ifeq ($(CONFIG_MULTI_CHAN_SUPPORT),y)
-	ccflags-y += -DMULTI_CHAN_SUPPORT
-endif
 
 ifeq ($(CONFIG_DFS_TESTING_SUPPORT),y)
 	ccflags-y += -DDFS_TESTING_SUPPORT
@@ -281,10 +251,6 @@ ifeq ($(CONFIG_SD9097),y)
 	CONFIG_SDIO=y
 	ccflags-y += -DSD9097
 endif
-ifeq ($(CONFIG_SDNW62X),y)
-	CONFIG_SDIO=y
-	ccflags-y += -DSDNW62X
-endif
 ifeq ($(CONFIG_SD9177),y)
 	CONFIG_SDIO=y
 	ccflags-y += -DSD9177
@@ -317,10 +283,6 @@ ifeq ($(CONFIG_USB9097),y)
 	CONFIG_MUSB=y
 	ccflags-y += -DUSB9097
 endif
-ifeq ($(CONFIG_USBNW62X),y)
-	CONFIG_MUSB=y
-	ccflags-y += -DUSBNW62X
-endif
 ifeq ($(CONFIG_USB9098),y)
 	CONFIG_MUSB=y
 	ccflags-y += -DUSB9098
@@ -340,10 +302,6 @@ endif
 ifeq ($(CONFIG_PCIE9098),y)
 	CONFIG_PCIE=y
 	ccflags-y += -DPCIE9098
-endif
-ifeq ($(CONFIG_PCIENW62X),y)
-	CONFIG_PCIE=y
-	ccflags-y += -DPCIENW62X
 endif
 ifeq ($(CONFIG_SDIO),y)
 	ccflags-y += -DSDIO
@@ -387,7 +345,6 @@ endif
 #ccflags-y += -Wmissing-field-initializers
 #ccflags-y += -Wstringop-truncation
 #ccflags-y += -Wmisleading-indentation
-#ccflags-y += -Wunused-const-variable
 #############################################################################
 # Make Targets
 #############################################################################
@@ -504,17 +461,7 @@ endif
 endif
 
 
-#ifdef EMBEDDED_AUTH
-ifeq ($(CONFIG_DRV_EMBEDDED_AUTHENTICATOR), y)
-    ccflags-y += -DDRV_EMBEDDED_AUTHENTICATOR
-endif
-#endif
 
-#ifdef EMBEDDED_SUPP
-ifeq ($(CONFIG_DRV_EMBEDDED_SUPPLICANT), y)
-    ccflags-y += -DDRV_EMBEDDED_SUPPLICANT
-endif
-#endif
 
 
 MOALOBJS =	mlinux/moal_main.o \
@@ -594,37 +541,9 @@ endif
 
 
 
-#if defined(EMBEDDED_SUPP) || defined(EMBEDDED_AUTH)
-ifeq ($(CONFIG_EMBEDDED_SUPP_AUTH), y)
-MLANOBJS += mlan/esa/common/crypto_api.o \
-			mlan/esa/common/aes_cmac_rom.o \
-			mlan/esa/common/crypt_new_rom.o \
-			mlan/esa/common/pmkCache.o \
-			mlan/esa/common/pmkCache_rom.o \
-			mlan/esa/common/parser.o \
-			mlan/esa/common/parser_rom.o \
-			mlan/esa/keyMgmtApStaCommon.o \
-			mlan/esa/hostsa_init.o \
-			mlan/esa/authenticator_api.o
-endif
-#endif
 
 
-#ifdef EMBEDDED_SUPP
-ifeq ($(CONFIG_DRV_EMBEDDED_SUPPLICANT),y)
-MLANOBJS += mlan/esa/keyMgmtSta.o \
-			mlan/esa/keyMgmtSta_rom.o \
-			mlan/esa/supplicant.o
-endif
-#endif
 
-#ifdef EMBEDDED_AUTH
-ifeq ($(CONFIG_DRV_EMBEDDED_AUTHENTICATOR),y)
-MLANOBJS += mlan/esa/AssocAp_srv_rom.o \
-			mlan/esa/keyMgmtAp_rom.o \
-			mlan/esa/keyMgmtAp.o
-endif
-#endif
 
 obj-m := mlan.o
 mlan-objs := $(MLANOBJS)
@@ -653,72 +572,15 @@ endif
 
 export		CC LD ccflags-y KERNELDIR
 
-ifeq ($(CONFIG_STA_SUPPORT),y)
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-.PHONY: mapp/mlanconfig mapp/mlan2040coex mapp/mlanevent mapp/uaputl mapp/mlanutl clean distclean
-else
-.PHONY: mapp/mlanconfig mapp/mlanevent mapp/mlan2040coex mapp/mlanutl clean distclean
-endif
-else
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-.PHONY: mapp/mlanevent mapp/uaputl clean distclean
-endif
-endif
+.PHONY: mapp/mlanconfig mapp/mlanutl clean distclean
 	@echo "Finished Making NXP Wlan Linux Driver"
 
-ifeq ($(CONFIG_STA_SUPPORT),y)
 mapp/mlanconfig:
 	$(MAKE) -C $@
 mapp/mlanutl:
 	$(MAKE) -C $@
-mapp/mlan2040coex:
-	$(MAKE) -C $@
-endif
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-mapp/uaputl:
-	$(MAKE) -C $@
-endif
-ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
-mapp/wifidirectutl:
-	$(MAKE) -C $@
-endif
-mapp/mlanevent:
-	$(MAKE) -C $@
 
 echo:
-
-appsbuild:
-
-	@if [ ! -d $(BINDIR) ]; then \
-		mkdir $(BINDIR); \
-	fi
-
-ifeq ($(CONFIG_STA_SUPPORT),y)
-	cp -f README $(BINDIR)
-	cp -f README_MLAN $(BINDIR)
-	cp -f README_RBC $(BINDIR)
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/mlanconfig $@ INSTALLDIR=$(BINDIR)
-	$(MAKE) -C mapp/mlanutl $@ INSTALLDIR=$(BINDIR)
-	$(MAKE) -C mapp/mlan2040coex $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-	cp -f README_UAP $(BINDIR)
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/uaputl $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
-	cp -f README_WIFIDIRECT $(BINDIR)
-	cp -rpf script/wifidirect $(BINDIR)
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/wifidirectutl $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/mlanevent $@ INSTALLDIR=$(BINDIR)
-endif
 
 build:		echo default
 
@@ -732,31 +594,10 @@ build:		echo default
 	cp -rpf script/load $(BINDIR)/
 	cp -rpf script/unload $(BINDIR)/
 
-ifeq ($(CONFIG_STA_SUPPORT),y)
-	cp -f README $(BINDIR)
 	cp -f README_MLAN $(BINDIR)
-	cp -f README_RBC $(BINDIR)
 ifneq ($(APPDIR),)
 	$(MAKE) -C mapp/mlanconfig $@ INSTALLDIR=$(BINDIR)
 	$(MAKE) -C mapp/mlanutl $@ INSTALLDIR=$(BINDIR)
-	$(MAKE) -C mapp/mlan2040coex $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-	cp -f README_UAP $(BINDIR)
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/uaputl $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
-	cp -f README_WIFIDIRECT $(BINDIR)
-	cp -rpf script/wifidirect $(BINDIR)
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/wifidirectutl $@ INSTALLDIR=$(BINDIR)
-endif
-endif
-ifneq ($(APPDIR),)
-	$(MAKE) -C mapp/mlanevent $@ INSTALLDIR=$(BINDIR)
 endif
 
 clean:
@@ -771,18 +612,8 @@ clean:
 	-find . -name "*dwo" -exec rm {} \;
 	-rm -rf .tmp_versions
 ifneq ($(APPDIR),)
-ifeq ($(CONFIG_STA_SUPPORT),y)
 	$(MAKE) -C mapp/mlanconfig $@
 	$(MAKE) -C mapp/mlanutl $@
-	$(MAKE) -C mapp/mlan2040coex $@
-endif
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-	$(MAKE) -C mapp/uaputl $@
-endif
-ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
-	$(MAKE) -C mapp/wifidirectutl $@
-endif
-	$(MAKE) -C mapp/mlanevent $@
 endif
 #ifdef SDIO
 #endif // SDIO
@@ -811,18 +642,8 @@ distclean:
 	-find . -name "*dwo" -exec rm {} \;
 	-rm -rf .tmp_versions
 ifneq ($(APPDIR),)
-ifeq ($(CONFIG_STA_SUPPORT),y)
 	$(MAKE) -C mapp/mlanconfig $@
 	$(MAKE) -C mapp/mlanutl $@
-	$(MAKE) -C mapp/mlan2040coex $@
-endif
-ifeq ($(CONFIG_UAP_SUPPORT),y)
-	$(MAKE) -C mapp/uaputl $@
-endif
-ifeq ($(CONFIG_WIFI_DIRECT_SUPPORT),y)
-	$(MAKE) -C mapp/wifidirectutl $@
-endif
-	$(MAKE) -C mapp/mlanevent $@
 endif
 
 # End of file
